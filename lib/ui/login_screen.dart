@@ -1,5 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pqms_flutter/app_constants/shared_preferance.dart';
+import 'package:pqms_flutter/app_constants/shared_preferences_const.dart';
+import 'package:pqms_flutter/models/login_model.dart';
 import 'package:pqms_flutter/ui/custom_widgets/custom_button.dart';
 import 'package:pqms_flutter/ui/custom_widgets/custom_textfield.dart';
 import 'package:pqms_flutter/ui/routes/app_routes.dart';
@@ -49,7 +53,7 @@ class _MyWidgetState extends State<LoginScreen> {
                 onPressed: (() {
                   if (loginValidated()) {
                     fetchLoginDetailsFromApi();
-                    //Navigator.pushNamed(context, AppRoutes.generateMpin);
+                    //
                   }
                 }),
                 child: Text("Login"))
@@ -120,7 +124,7 @@ class _MyWidgetState extends State<LoginScreen> {
     };
 
 // step 3: create headders and autherazation
-    Map<String, String> requestHeaders = {'clientId': 'Client123Cgg'};
+    Map<String, String> requestHeaders = {'clientId': 'Client123Cgg', 'Content-Type': 'application/json; charset=UTF-8', 'Access-Control-Allow-Origin': '*'};
 
 // step 4: dio or http use this package connect to server
     final _dioObject = Dio();
@@ -130,11 +134,39 @@ class _MyWidgetState extends State<LoginScreen> {
           data: requestPayload, options: Options(headers: requestHeaders));
       //convet this response from json to modelclass
 
-      print(_response);
+      print(_response.data);
+      final loginResponse = LoginModel.fromJson(_response.data);
+      if(loginResponse.statusCode==200){
+         SharedPreferencesClass().writeTheData(PreferenceConst.username, loginResponse.data?.userName);
+          SharedPreferencesClass().writeTheData(PreferenceConst.token, loginResponse.data?.token);
+       
+ Fluttertoast.showToast(
+        msg: loginResponse.data?.rolename.toString() ?? "" ,  // message
+        toastLength: Toast.LENGTH_SHORT, // length
+        gravity: ToastGravity.CENTER,    // location
+        timeInSecForIosWeb: 1               // duration
+    );
+    Navigator.pushNamed(context, AppRoutes.generateMpin);
+
+      }else if(loginResponse.statusCode==204){
+         Fluttertoast.showToast(
+        msg: loginResponse.statusMessage ?? "" ,  // message
+        toastLength: Toast.LENGTH_SHORT, // length
+        gravity: ToastGravity.CENTER,    // location
+        timeInSecForIosWeb: 1               // duration
+    );
+      }
+     
     } on DioError catch (e) {
       if (e.response?.statusCode == 400 || e.response?.statusCode == 500) {
        final errorMessage = e.response?.statusMessage;
-        showAlert(errorMessage ??"");
+       Fluttertoast.showToast(
+        msg: errorMessage ??"",  // message
+        toastLength: Toast.LENGTH_SHORT, // length
+        gravity: ToastGravity.CENTER,    // location
+        timeInSecForIosWeb: 1               // duration
+    );
+    
       }
       print("error is $e");
 
