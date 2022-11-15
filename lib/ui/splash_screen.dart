@@ -107,6 +107,13 @@ autherization: null
         gravity: ToastGravity.CENTER,    // location
         timeInSecForIosWeb: 1               // duration
     );
+      }else{
+          Fluttertoast.showToast(
+        msg: splashResopnse.statusMessage ?? "" ,  // message
+        toastLength: Toast.LENGTH_SHORT, // length
+        gravity: ToastGravity.CENTER,    // location
+        timeInSecForIosWeb: 1               // duration
+    );
       }
      
     } on DioError catch (e) {
